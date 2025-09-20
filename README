@@ -1,0 +1,16 @@
+You must implement the following functions:
+  * parse_header()
+  * calculate_checksum()
+  * lfsr_step()
+  * decrypt_data()
+  * decompress_data()
+  * join_float_array()
+
+Your implementations must go in unpack-utilities.c.
+You can find documentation for how these functions should behave in unpack-utilities.h.
+
+To compile your code, type "make" (without the quotes).
+
+If you are curious how unpack works under the hood, you can read unpack.c.
+
+You can write unit tests in test-utilities.c, and they will be compiled to a test-utilities program for you.
