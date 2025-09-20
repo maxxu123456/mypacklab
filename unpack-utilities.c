@@ -25,6 +25,10 @@ void* malloc_and_check(size_t size) {
   return pointer;
 }
 
+uint64_t get64(uint8_t* beginning) {
+  return ((u_int64_t)beginning[0]) | ((u_int64_t)beginning[1] << 8) | ((u_int64_t)beginning[2] << 16)| ((u_int64_t)beginning[3] << 24) | ((u_int64_t)beginning[4] << 32) | ((u_int64_t)beginning[5] << 40)| ((u_int64_t)beginning[5] << 48)  | ((u_int64_t)beginning[6] << 56);
+}
+
 void parse_header(uint8_t* input_data, size_t input_len, packlab_config_t* config) {
 
   // TODO
@@ -32,6 +36,32 @@ void parse_header(uint8_t* input_data, size_t input_len, packlab_config_t* confi
   // Look at unpack-utilities.h to see what the fields of config are
   // Set the is_valid field of config to false if the header is invalid
   // or input_len (length of the input_data) is shorter than expected
+
+  uint16_t magic = (input_data[0] << 8) | input_data[1];
+
+  if (magic != 0x0213) {
+    config->is_valid = false;
+    return;
+  }
+
+  uint8_t version = input_data[2];
+
+  if (version != 0x03) {
+  config->is_valid = false;
+  }
+
+  uint8_t flags = input_data[3];
+
+  config->is_compressed = (flags & (1 << 7))>0;
+  config->is_encrypted = (flags & (1 << 6))>0;
+  config->is_checksummed = (flags & (1 << 5))>0;
+  config->should_continue = (flags & (1 << 4))>0;
+  config->should_float = (flags & (1 << 3))>0;
+  config->should_float3 = (flags & (1 << 2))>0;
+
+  config->orig_data_size = get64(4 + input_data);
+  config->data_size = get64(12 + input_data);
+  
 
 }
 
