@@ -98,23 +98,22 @@ void parse_header(uint8_t* input_data, size_t input_len, packlab_config_t* confi
       return; 
     }
     uint8_t* ptr = input_data + config->header_len - 2;
-    config->checksum_value = (u_int16_t)ptr[1] | ((u_int16_t)ptr[0] << 8); // big endian?
+    config->checksum_value = (u_int16_t)ptr[1] | ((u_int16_t)ptr[0] << 8); // big endian? Yes, it's big endian
   }
 
   config->is_valid = true; 
-
-
   
-
 }
 
 uint16_t calculate_checksum(uint8_t* input_data, size_t input_len) {
 
-  // TODO
-  // Calculate a checksum over input_data
-  // Return the checksum value
+  uint16_t checksum = 0;
 
-  return 0;
+  for (size_t i = 0; i < input_len; i++) {
+    checksum = checksum + (uint16_t) input_data[i];
+  }
+
+  return checksum;
 }
 
 uint16_t lfsr_step(uint16_t oldstate) {
