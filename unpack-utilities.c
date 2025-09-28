@@ -138,6 +138,27 @@ void decrypt_data(uint8_t* input_data, size_t input_len,
   // Apply psuedorandom number with an XOR in little-endian order
   // Beware: input_data may be an odd number of bytes
 
+  uint16_t curr_state = encryption_key;
+
+  size_t i = 0;
+
+  for (i = 0; i < input_len -1; i+=2) {
+    curr_state = lfsr_step(curr_state);
+    uint8_t first_byte = curr_state >> 8;
+    uint8_t second_byte = curr_state & 0xFF;
+    
+    output_data[i] = input_data[i] ^ second_byte;
+    output_data[i+1] = input_data[i+1] & first_byte;
+
+  }
+  if (i < input_len) {
+    i++;
+    curr_state = lfsr_step(curr_state);
+    uint8_t least_sig = curr_state & 0xFF;
+    output_data[i] = input_data[i] ^ least_sig;
+
+  }
+
 }
 
 size_t decompress_data(uint8_t* input_data, size_t input_len,
