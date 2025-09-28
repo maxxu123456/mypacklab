@@ -148,7 +148,7 @@ void decrypt_data(uint8_t* input_data, size_t input_len,
     uint8_t second_byte = curr_state & 0xFF;
     
     output_data[i] = input_data[i] ^ second_byte;
-    output_data[i+1] = input_data[i+1] & first_byte;
+    output_data[i+1] = input_data[i+1] ^ first_byte;
 
   }
   if (i < input_len) {
