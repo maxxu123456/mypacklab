@@ -122,7 +122,7 @@ uint16_t lfsr_step(uint16_t oldstate) {
   // Calculate the new LFSR state given previous state
   // Return the new LFSR state
 
-  uint16_t combined = oldstate  ^ (oldstate >> 6) ^ (oldstate >> 9) ^ (oldstate >> 13) & 0x1;
+  uint16_t combined = (oldstate  ^ (oldstate >> 6) ^ (oldstate >> 9) ^ (oldstate >> 13)) & 0x1;
 
   return combined << 15 | oldstate >> 1;
 }
@@ -142,7 +142,7 @@ void decrypt_data(uint8_t* input_data, size_t input_len,
 
   size_t i = 0;
 
-  for (i = 0; i < input_len -1; i+=2) {
+  for (i = 0; i + 1 < input_len; i+=2) {
     curr_state = lfsr_step(curr_state);
     uint8_t first_byte = curr_state >> 8;
     uint8_t second_byte = curr_state & 0xFF;
@@ -152,7 +152,6 @@ void decrypt_data(uint8_t* input_data, size_t input_len,
 
   }
   if (i < input_len) {
-    i++;
     curr_state = lfsr_step(curr_state);
     uint8_t least_sig = curr_state & 0xFF;
     output_data[i] = input_data[i] ^ least_sig;
@@ -169,15 +168,17 @@ size_t decompress_data(uint8_t* input_data, size_t input_len,
   // Decompress input_data and write result to output_data
   // Return the length of the decompressed data
 
-  uint8_t output_index = 0;
+  size_t output_index = 0;
+  printf("DEBUG: input_len=%zu\n", input_len);  // Add this line
 
-  for(uint8_t input_index = 0; input_index < input_len; input_index++) {
+
+  for(size_t input_index = 0; input_index < input_len; input_index++) {
     u_int8_t byte = input_data[input_index];
 
     if (byte != 0x07) {
       // Regular character
       if(output_index < output_len) {
-        output_data[output_index] = 0x07;
+        output_data[output_index] = byte;
         output_index++;
       }
     } else {
@@ -190,6 +191,9 @@ size_t decompress_data(uint8_t* input_data, size_t input_len,
       } else {
         //not the last chacter
         input_index++;
+        if (input_index >= input_len) {
+          break;
+        }
         uint8_t info = input_data[input_index];
 
         if (info == 0x00) {
@@ -205,6 +209,7 @@ size_t decompress_data(uint8_t* input_data, size_t input_len,
           for (uint8_t j = 0; j < repeat; j++) {
             if(output_index < output_len) {
               output_data[output_index] = character;
+              output_index++;
             }
           }
         }
@@ -213,7 +218,7 @@ size_t decompress_data(uint8_t* input_data, size_t input_len,
     }
 
   }
-
+  return output_index;
 
 }
 
@@ -234,7 +239,7 @@ void join_float_array(uint8_t* input_signfrac, size_t input_len_bytes_signfrac,
     uint32_t signfrac = (uint32_t) input_signfrac[starting_index] | (uint32_t) input_signfrac[starting_index +1] << 8 | (uint32_t) input_signfrac[starting_index+2] <<16;
 
     uint32_t sign = signfrac >> 23;
-    uint32_t fraction = 0b00000000011111111111111111111111 & signfrac;
+    uint32_t fraction = ((0x1 << 23)-1) & signfrac;
     uint32_t exp = (uint32_t) input_exp[i];
 
     uint32_t ieee = sign << 31 | exp << 23  | fraction;
@@ -245,8 +250,7 @@ void join_float_array(uint8_t* input_signfrac, size_t input_len_bytes_signfrac,
     output_data[output_index + 1] = (uint8_t) ((ieee >> 8 )& 0xFF);
         output_data[output_index + 2] = (uint8_t) ((ieee >> 16 )& 0xFF);
 
-            output_data[output_index + 2] = (uint8_t) ((ieee >> 24 )& 0xFF);
-
+            output_data[output_index + 3] = (uint8_t) ((ieee >> 24 )& 0xFF);
   }
 
 }
