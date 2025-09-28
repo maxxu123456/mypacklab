@@ -226,6 +226,29 @@ void join_float_array(uint8_t* input_signfrac, size_t input_len_bytes_signfrac,
   // into one output stream of floating point data
   // Output bytes are in little-endian order
 
+  size_t num_floats = input_len_bytes_signfrac /3;
+
+  for(size_t i = 0; i< num_floats;i++) {
+    size_t starting_index = 3 * i;
+
+    uint32_t signfrac = (uint32_t) input_signfrac[starting_index] | (uint32_t) input_signfrac[starting_index +1] << 8 | (uint32_t) input_signfrac[starting_index+2] <<16;
+
+    uint32_t sign = signfrac >> 23;
+    uint32_t fraction = 0b00000000011111111111111111111111 & signfrac;
+    uint32_t exp = (uint32_t) input_exp[i];
+
+    uint32_t ieee = sign << 31 | exp << 23  | fraction;
+
+    size_t output_index = 4 * i;
+
+    output_data[output_index] = (uint8_t) (ieee & 0xFF);
+    output_data[output_index + 1] = (uint8_t) ((ieee >> 8 )& 0xFF);
+        output_data[output_index + 2] = (uint8_t) ((ieee >> 16 )& 0xFF);
+
+            output_data[output_index + 2] = (uint8_t) ((ieee >> 24 )& 0xFF);
+
+  }
+
 }
 /* End of mandatory implementation. */
 
