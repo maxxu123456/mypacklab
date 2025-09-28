@@ -169,7 +169,52 @@ size_t decompress_data(uint8_t* input_data, size_t input_len,
   // Decompress input_data and write result to output_data
   // Return the length of the decompressed data
 
-  return 0;
+  uint8_t output_index = 0;
+
+  for(uint8_t input_index = 0; input_index < input_len; input_index++) {
+    u_int8_t byte = input_data[input_index];
+
+    if (byte != 0x07) {
+      // Regular character
+      if(output_index < output_len) {
+        output_data[output_index] = 0x07;
+        output_index++;
+      }
+    } else {
+      //is escape acharacter
+
+      if(input_index == input_len-1) {
+        //last character
+        output_data[output_index] = 0x07;
+        output_index++;
+      } else {
+        //not the last chacter
+        input_index++;
+        uint8_t info = input_data[input_index];
+
+        if (info == 0x00) {
+          //literal escape achacter
+          output_data[output_index] = 0x07;
+          output_index ++;
+        } else {
+          //no tliteral escape character = main case where char repats
+          uint8_t repeat = (info >> 4) &0x0F;
+          uint8_t dic_index = info &0x0F;
+          uint8_t character = dictionary_data[dic_index];
+
+          for (uint8_t j = 0; j < repeat; j++) {
+            if(output_index < output_len) {
+              output_data[output_index] = character;
+            }
+          }
+        }
+      }
+
+    }
+
+  }
+
+
 }
 
 void join_float_array(uint8_t* input_signfrac, size_t input_len_bytes_signfrac,
