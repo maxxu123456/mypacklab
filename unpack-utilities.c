@@ -122,7 +122,9 @@ uint16_t lfsr_step(uint16_t oldstate) {
   // Calculate the new LFSR state given previous state
   // Return the new LFSR state
 
-  return 0;
+  uint16_t combined = oldstate  ^ (oldstate >> 6) ^ (oldstate >> 9) ^ (oldstate >> 13) & 0x1;
+
+  return combined << 15 | oldstate >> 1;
 }
 
 void decrypt_data(uint8_t* input_data, size_t input_len,
