@@ -256,6 +256,29 @@ void join_float_array(uint8_t* input_signfrac, size_t input_len_bytes_signfrac,
 }
 /* End of mandatory implementation. */
 
+uint8_t readBit(uint8_t *source, size_t offset){ // reads one bit
+  int byteIndex = offset /8;
+  int bitIndex = offset % 8;// which bit is it in the byte
+
+  uint8_t byte = source[byteIndex];
+  int bit = (byte >> bitIndex) & 1;
+
+  return bit; 
+
+}
+
+uint32_t readMultipleBits(uint8_t *source, size_t offset, size_t numBits){
+  uint32_t result = 0;
+
+  for(int i = 0; i < numBits; i++){
+    int bit = readBit(source, offset + i);
+    result = result << 1;
+    result = result | bit;
+  }
+  return result;
+
+}
+
 /* Extra credit */
 void join_float_array_three_stream(uint8_t* input_frac,
                                    size_t   input_len_bytes_frac,
@@ -270,6 +293,21 @@ void join_float_array_three_stream(uint8_t* input_frac,
   // Combine three streams of bytes, one with frac data, one with exp data,
   // and one with sign data, into one output stream of floating point data
   // Output bytes are in little-endian order
+
+  size_t numfloats = input_len_bytes_exp;
+
+  for(int i = 0; i < numfloats; i++){
+    uint32_t sign = readMultipleBits(input_sign, i, 1);
+    uint32_t exp = readMultipleBits(input_exp, i *8, 8);
+    uint32_t mantissa = readMultipleBits(input_frac, i * 23, 23);
+
+    uint32_t word = (sign << 31) | (exp << 23) | (mantissa); 
+
+    output_data[i *4 + 0] = (uint8_t)(word & 0xFF);
+    output_data[i *4 + 1] = (uint8_t)((word >> 8) & 0xFF);
+    output_data[i *4 + 2] = (uint8_t)((word >> 16) & 0xFF);
+    output_data[i *4 + 3] = (uint8_t)((word >> 24) & 0xFF);
+  }
 
 }
 
