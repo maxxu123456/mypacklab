@@ -26,14 +26,14 @@ void* malloc_and_check(size_t size) {
 }
 
 uint64_t get64(uint8_t* beginning) {
-  return ((u_int64_t)beginning[0])| 
-  ((u_int64_t)beginning[1] << 8) | 
-  ((u_int64_t)beginning[2] << 16)| 
-  ((u_int64_t)beginning[3] << 24)| 
-  ((u_int64_t)beginning[4] << 32)| 
-  ((u_int64_t)beginning[5] << 40)| 
-  ((u_int64_t)beginning[6] << 48)|
-   ((u_int64_t)beginning[7] << 56);
+  return ((uint64_t)beginning[0])| 
+  ((uint64_t)beginning[1] << 8) | 
+  ((uint64_t)beginning[2] << 16)| 
+  ((uint64_t)beginning[3] << 24)| 
+  ((uint64_t)beginning[4] << 32)| 
+  ((uint64_t)beginning[5] << 40)| 
+  ((uint64_t)beginning[6] << 48)|
+   ((uint64_t)beginning[7] << 56);
 }
 
 
@@ -98,7 +98,7 @@ void parse_header(uint8_t* input_data, size_t input_len, packlab_config_t* confi
       return; 
     }
     uint8_t* ptr = input_data + config->header_len - 2;
-    config->checksum_value = (u_int16_t)ptr[1] | ((u_int16_t)ptr[0] << 8); // big endian? Yes, it's big endian
+    config->checksum_value = (uint16_t)ptr[1] | ((uint16_t)ptr[0] << 8); // big endian? Yes, it's big endian
   }
 
   config->is_valid = true; 
@@ -173,7 +173,7 @@ size_t decompress_data(uint8_t* input_data, size_t input_len,
 
 
   for(size_t input_index = 0; input_index < input_len; input_index++) {
-    u_int8_t byte = input_data[input_index];
+    uint8_t byte = input_data[input_index];
 
     if (byte != 0x07) {
       // Regular character
